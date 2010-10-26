@@ -323,28 +323,10 @@ var defaultIdentifierKey = @"id",
 
 + (CPArray)collectionDidLoad:(CPString)aResponse
 {
-    var collection       = [aResponse toJSON]
-    var resourceArray    = [CPArray array]
-    var notificationName = [self className] + "CollectionDidLoad";
-
-    for (var i = 0; i < collection.length; i++) {
-        var attributes = collection[i];
-        // var attributes = resource[[self railsName]];
-
-        var klass;
-        if(attributes['type']) {
-          klass = attributes['type']
-        }else{
-          klass = [self className]
-        }
-
-        var resource = [objj_getClass(klass) new:attributes];
-        [resource resourceHasLoaded]
-        [resourceArray addObject:resource];
-
-    }
-    [[CPNotificationCenter defaultCenter] postNotificationName:notificationName object:self];
-    return resourceArray;
+	var	 json = [aResponse toJSON];
+	promote_JSON_to_CPObjects(json, self);
+	[[CPNotificationCenter defaultCenter] postNotificationName:[self className]+'CollectionDidLoad' object:self];
+	return json;
 }
 
 - (CPURLRequest)resourceWillSave
@@ -472,3 +454,69 @@ var defaultIdentifierKey = @"id",
   }
 }
 @end
+
+function promote_JSObject_to_CPObject(jsobject, klass) {
+	jsobject.isa = klass;
+	jsobject._UID = objj_generateObjectUID();
+	
+	var ivars = class_copyIvarList(klass);
+	var i = 0, l = ivars.length;
+	var ivarName;
+	
+	for (; i < l; i++) {
+		ivarName = ivars[i].name;
+		if (!(ivarName in jsobject)) {
+			// Add a ivar slot of the object is missing it.
+			jsobject[ivarName] = undefined; // add an ivar slot
+		}
+	}
+}
+
+function promote_JSON_to_CPObjects(attributesArray, klass) {
+	var attributesIndex = 0;
+	var attributesLength = attributesArray.length;
+	var attributes;
+	
+	for (; attributesIndex < attributesLength; attributesIndex++) {
+		attributes = attributesArray[attributesIndex];
+		promote_JSObject_to_CPObject(attributes, klass);
+		for (var attribute in attributes) {
+	        if (attribute == [klass identifierKey]) {
+	            [attributes setIdentifier:attributes[attribute].toString()];
+	        } else {	
+				var value = attributes[attribute];
+				
+				// Rewrite slot name from rails_style into cappStyle.
+				if (attribute != '_UID') {
+					var attributeName = [attribute cappifiedString];
+					if (attributeName !== attribute) {
+						attributes[attributeName] = value;
+						delete attributes[attribute];
+					}
+				}
+				
+				switch (typeof value) {
+					case 'string':
+						if (value.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                            // its a date
+							attributes[attributeName] = [CPDate dateWithDateString:value];
+                        } else if (value.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/)) {
+                            // its a datetime
+							attributes[attributeName] = [CPDate dateWithDateTimeString:value];
+                        }
+						break;
+					case 'object':
+						// array
+						if (value !== null && value.length) {
+							var includedClass = objj_getClass([attribute classifiedString]);
+							if (typeof value[0] == 'object') {
+								promote_JSON_to_CPObjects(value, includedClass);
+							}
+						}
+						break;
+				}
+	        }
+	    }
+		[attributes resourceHasLoaded];
+	}
+}
