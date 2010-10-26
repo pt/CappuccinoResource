@@ -459,16 +459,20 @@ function promote_JSObject_to_CPObject(jsobject, klass) {
 	jsobject.isa = klass;
 	jsobject._UID = objj_generateObjectUID();
 	
-	var ivars = class_copyIvarList(klass);
-	var i = 0, l = ivars.length;
-	var ivarName;
+	while (klass) {
+		var ivars = class_copyIvarList(klass);
+		var i = 0, l = ivars.length;
+		var ivarName;
 	
-	for (; i < l; i++) {
-		ivarName = ivars[i].name;
-		if (!(ivarName in jsobject)) {
-			// Add a ivar slot of the object is missing it.
-			jsobject[ivarName] = undefined; // add an ivar slot
+		for (; i < l; i++) {
+			ivarName = ivars[i].name;
+			if (!(ivarName in jsobject)) {
+				// Add a ivar slot of the object is missing it.
+				jsobject[ivarName] = undefined; // add an ivar slot
+			}
 		}
+		
+		klass = klass.super_class;
 	}
 }
 
