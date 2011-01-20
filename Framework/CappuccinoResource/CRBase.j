@@ -125,8 +125,6 @@ var defaultIdentifierKey = @"id",
                                 } else {
                                     [self setValue:value forKey:attributeName];
                                 }
-                           } else {
-                                [self setValue:[objj_getClass([attribute classifiedString]) new:value] forKey:attributeName];
                            }
                            break;
                     }
