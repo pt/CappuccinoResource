@@ -68,12 +68,17 @@ var defaultIdentifierKey = @"id",
 
 - (void)setAttributes:(JSObject)attributes
 {
+  // CPLog.warn("=====setAttributes for class: " + [self className]);
     for (var attribute in attributes) {
+        // CPLog.warn("Evaluating attribute " + attribute)
         if (attribute == [[self class] identifierKey]) {
+            // CPLog.warn("Attribute is self class identifier key, setting self identifier to " + attributes[attribute].toString())
             [self setIdentifier:attributes[attribute].toString()];
         } else {
             var attributeName = [attribute cappifiedString];
+            // CPLog.warn("Attribute's cappified string is " + attributeName)
             if ([[self attributeNames] containsObject:attributeName]) {
+                // CPLog.warn("Class contains this attribute")
                 var value = attributes[attribute];
                   if(value != null) {
                     /*
@@ -101,6 +106,9 @@ var defaultIdentifierKey = @"id",
                             } else {
                                 // its a string
                                 [self setValue:value forKey:attributeName];
+                                if (attribute == "name") {
+                                  // CPLog.warn("name is " + value)
+                                }
                             }
                             break;
                         case "object":
@@ -109,6 +117,7 @@ var defaultIdentifierKey = @"id",
                                 var includedClass = objj_getClass([attribute classifiedString]);
 
                                 if (includedClass != null) {
+                                    // CPLog.warn("Attribute " + attribute + " is an array of " + includedClass + " of length " + value.length)
                                     var included = [];
                                     for (var i = 0; i < value.length; i++) {
                                         var newObject;
@@ -123,12 +132,21 @@ var defaultIdentifierKey = @"id",
                                     }
                                     [self setValue:included forKey:attributeName];
                                 } else {
+                                    // CPLog.warn("Attribute " + attribute + " is an array of value " + value + " of length " + value.length)
                                     [self setValue:value forKey:attributeName];
                                 }
+                           } else {
+                                var includedClass = objj_getClass([attribute classifiedString]);
+                                // CPLog.warn("Attribute " + attribute + " is an object, its classified string is " + includedClass)
+                                [self setValue:[objj_getClass([attribute classifiedString]) new:value] forKey:attributeName];
                            }
                            break;
                     }
+                } else {
+                  // CPLog.warn("Value is null")
                 }
+            } else {
+              // CPLog.warn("Class does not contain this attribute")
             }
         }
     }
