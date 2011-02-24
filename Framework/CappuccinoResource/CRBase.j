@@ -448,7 +448,18 @@ var defaultIdentifierKey = @"id",
 }
 
 -(BOOL)isEqual:(CappuccinoResource)other {
-  return ([self class] == [other class] && [self identifier] == [other identifier])
+  if ([self class] == [other class] && [self identifier] == [other identifier]) {
+    if ([self identifier] == null && [other identifier] == null){
+      // Neither object has _not_ been saved (we can tell because the identifiers are null)
+      // so use the normal CPObject isEquals 
+      return([super isEqual:other]);
+    } else {
+      // This object has been saved, class and the identifiers are equal, so they are equal
+      return YES;
+    }
+  }
+  // The class or identifiers don't match
+  return NO;
 }
 
 -(BOOL)isNewRecord{
