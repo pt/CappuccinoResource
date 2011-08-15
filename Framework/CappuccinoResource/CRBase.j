@@ -492,7 +492,7 @@ function promote_JSObject_to_CPObject(jsobject, klass) {
 		var ivars = class_copyIvarList(klass);
 		var i = 0, l = ivars.length;
 		var ivarName;
-	
+
 		for (; i < l; i++) {
 			ivarName = ivars[i].name;
 			if (!(ivarName in jsobject)) {
@@ -518,16 +518,16 @@ function promote_JSON_to_CPObjects(attributesArray, klass) {
 	            [attributes setIdentifier:attributes[attribute].toString()];
 	        } else {	
 				var value = attributes[attribute];
-				
+        var attributeName = [attribute cappifiedString];
+            
 				// Rewrite slot name from rails_style into cappStyle.
 				if (attribute != '_UID') {
-					var attributeName = [attribute cappifiedString];
 					if (attributeName !== attribute) {
 						attributes[attributeName] = value;
 						delete attributes[attribute];
 					}
 				}
-				
+
 				switch (typeof value) {
 					case 'string':
 						if (value.match(/^\d{4}-\d{2}-\d{2}$/)) {
@@ -540,12 +540,16 @@ function promote_JSON_to_CPObjects(attributesArray, klass) {
 						break;
 					case 'object':
 						// array
+            var includedClass = objj_getClass([attribute classifiedString]);
 						if (value !== null && value.length) {
-							var includedClass = objj_getClass([attribute classifiedString]);
 							if (typeof value[0] == 'object') {
 								promote_JSON_to_CPObjects(value, includedClass);
 							}
 						}
+            // not an array.
+            else if (value !== null && includedClass !== null && value.length === undefined) {
+              promote_JSON_to_CPObjects([value], includedClass);
+            }
 						break;
 				}
 	        }

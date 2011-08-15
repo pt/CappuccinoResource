@@ -50,6 +50,8 @@ CPLogRegister(CPLogPrint)
     int       age         @accessors;
     BOOL      isAlive     @accessors;
     CPArray   profiles    @accessors;
+  
+    PermanentResidence permanentResidence @accessors;
 }
 
 - (JSObject)attributes
@@ -57,6 +59,13 @@ CPLogRegister(CPLogPrint)
     return {'email':email,'password':password, 'age':age};
 }
 
+@end
+
+@implementation PermanentResidence : CappuccinoResource
+{
+  CPString  state      @accessors;
+  CPString  country    @accessors;
+}
 @end
 
 @implementation Profile : CappuccinoResource

@@ -3,7 +3,7 @@
 var userResourceJSON      = '{"id":1,"email":"test@test.com","password":"secret"}',
     userCollectionJSON    = '[{"id":1,"email":"one@test.com"},' +
                             '{"id":2,"email":"two@test.com"},' +
-                            '{"id":3,"email":"three@test.com"}]';
+                            '{"id":3,"email":"three@test.com","permanent_residence":{"state":"CA", "country":"USA"}}]';
 var userWithProfilesJSON  = '{"id":7,"email":"three@test.com", "profiles": [{"id":2,"user_id":7,"favorite_food":"meat","intentionally_null":null}, {"id":3,"user_id":7,"favorite_food":"chard","intentionally_null":null}] }'
 var profileResourceJSON   = '{"id":2,"user_id":1,"favorite_food":"meat"}'
 
@@ -105,7 +105,7 @@ var profileResourceJSON   = '{"id":2,"user_id":1,"favorite_food":"meat"}'
 
 - (void)testAttributeNames
 {
-    [self assert:["email","password","age","isAlive", "profiles"] equals:[user attributeNames]];
+    [self assert:["email","password","age","isAlive", "profiles", "permanentResidence"] equals:[user attributeNames]];
     [self assert:["userName","startDate"] equals:[session attributeNames]];
 }
 
@@ -382,6 +382,8 @@ var profileResourceJSON   = '{"id":2,"user_id":1,"favorite_food":"meat"}'
     [self assert:@"one@test.com" equals:[[collection objectAtIndex:0] email]];
     [self assert:@"two@test.com" equals:[[collection objectAtIndex:1] email]];
     [self assert:@"three@test.com" equals:[[collection objectAtIndex:2] email]];
+    [self assert:@"CA" equals:[[[collection objectAtIndex:2] permanentResidence] state]];
+    [self assert:@"USA" equals:[[[collection objectAtIndex:2] permanentResidence] country]];
     [self assertTrue:[observer didObserve:@"UserCollectionDidLoad"]];
 }
 
